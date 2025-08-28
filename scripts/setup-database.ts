@@ -129,7 +129,7 @@ async function setupDatabase() {
 }
 
 // Run the setup if this file is executed directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   setupDatabase()
     .then(() => process.exit(0))
     .catch((error) => {

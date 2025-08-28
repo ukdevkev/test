@@ -249,7 +249,7 @@ async function seedData() {
 }
 
 // Run the seeding if this file is executed directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   seedData()
     .then(() => process.exit(0))
     .catch((error) => {

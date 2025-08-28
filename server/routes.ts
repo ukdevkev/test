@@ -291,10 +291,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Hash password
       const salt = await bcrypt.genSalt(10);
-      userData.passwordHash = await bcrypt.hash(userData.password, salt);
-      delete userData.password;
+      const passwordHash = await bcrypt.hash(userData.password, salt);
+      
+      // Create user data without password field
+      const { password, ...userDataWithoutPassword } = userData;
+      const userToCreate = {
+        ...userDataWithoutPassword,
+        passwordHash,
+      };
 
-      const user = await storage.createUser(userData);
+      const user = await storage.createUser(userToCreate);
       res.status(201).json(user);
     } catch (error) {
       console.error("Error creating user:", error);

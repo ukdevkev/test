@@ -141,22 +141,28 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(users, eq(customers.canvasserId, users.id))
       .leftJoin(users, eq(customers.assignedCleanerId, users.id));
 
+    const conditions = [];
+    
     if (filters?.status) {
-      query = query.where(eq(customers.status, filters.status));
+      conditions.push(eq(customers.status, filters.status));
     }
 
     if (filters?.cleanerId) {
-      query = query.where(eq(customers.assignedCleanerId, filters.cleanerId));
+      conditions.push(eq(customers.assignedCleanerId, filters.cleanerId));
     }
 
     if (filters?.search) {
-      query = query.where(
+      conditions.push(
         or(
           like(customers.firstName, `%${filters.search}%`),
           like(customers.lastName, `%${filters.search}%`),
           like(customers.email, `%${filters.search}%`)
         )
       );
+    }
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
     }
 
     return await query.orderBy(asc(customers.firstName));
@@ -222,8 +228,10 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(customers, eq(jobs.customerId, customers.id))
       .leftJoin(users, eq(jobs.cleanerId, users.id));
 
+    const conditions = [];
+    
     if (filters?.date) {
-      query = query.where(
+      conditions.push(
         and(
           gte(jobs.scheduledDate, new Date(filters.date)),
           lte(jobs.scheduledDate, new Date(filters.date + "T23:59:59"))
@@ -232,11 +240,15 @@ export class DatabaseStorage implements IStorage {
     }
 
     if (filters?.cleanerId) {
-      query = query.where(eq(jobs.cleanerId, filters.cleanerId));
+      conditions.push(eq(jobs.cleanerId, filters.cleanerId));
     }
 
     if (filters?.status) {
-      query = query.where(eq(jobs.status, filters.status));
+      conditions.push(eq(jobs.status, filters.status));
+    }
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
     }
 
     return await query.orderBy(asc(jobs.scheduledDate));
@@ -260,17 +272,20 @@ export class DatabaseStorage implements IStorage {
       })
       .from(jobs)
       .leftJoin(customers, eq(jobs.customerId, customers.id))
-      .leftJoin(users, eq(jobs.cleanerId, users.id))
-      .where(
-        and(
-          gte(jobs.scheduledDate, new Date(today)),
-          lte(jobs.scheduledDate, new Date(today + "T23:59:59"))
-        )
-      );
+      .leftJoin(users, eq(jobs.cleanerId, users.id));
 
+    let conditions = [
+      and(
+        gte(jobs.scheduledDate, new Date(today)),
+        lte(jobs.scheduledDate, new Date(today + "T23:59:59"))
+      )
+    ];
+    
     if (cleanerId) {
-      query = query.where(eq(jobs.cleanerId, cleanerId));
+      conditions.push(eq(jobs.cleanerId, cleanerId));
     }
+    
+    query = query.where(and(...conditions));
 
     return await query.orderBy(asc(jobs.scheduledTime));
   }

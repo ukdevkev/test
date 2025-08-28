@@ -1,0 +1,183 @@
+# Window Cleaning Management System - Complete Project Prompt
+
+## Project Overview
+Create a comprehensive door canvassing and window cleaning management system using Node.js, Express, MySQL, and vanilla JavaScript. This is a complete business management solution for window cleaning companies.
+
+## Core Business Requirements
+
+### Door Canvassing Features:
+- **Instant Appointment Generation**: Canvassers can create customers and schedule immediate appointments on-site
+- **42-Day Auto Scheduling**: System automatically schedules recurring appointments every 42 days after job completion
+- **Dynamic Price Calculator**: Real-time pricing based on property type (house/flat/commercial) and window count
+- **Customer Data Capture**: Full customer information with special instructions and cleaner assignment
+
+### Window Cleaning Operations:
+- **Day Pilot System**: Real-time job updates and scheduling interface
+- **Job Completion Workflow**: Complete jobs with before/after photos, payment method, and notes
+- **Payment Tracking**: Support for cash, bank transfer, and card payments
+- **Job Status Management**: Scheduled, completed, cancelled, skipped statuses
+
+### Schedule Management:
+- **Customer Pause/Resume**: Pause customer schedules with reasons, resume back to original 42-day cycle
+- **Auto-Resume**: Automatically resume customers after specified pause periods
+- **Skip Job Functionality**: Skip jobs with reason tracking while maintaining schedule
+
+### User Management:
+- **Role-Based Access**: Three user types - Admin, Canvasser, Cleaner with different permissions
+- **JWT Authentication**: Secure token-based authentication system
+- **User CRUD**: Admin can create, edit, delete users
+
+## Technical Stack Requirements
+
+### Backend (Node.js/Express):
+```javascript
+// Dependencies needed:
+{
+  "express": "^4.18.2",
+  "mysql2": "^3.6.0", 
+  "bcrypt": "^5.1.0",
+  "jsonwebtoken": "^9.0.2",
+  "multer": "^1.4.5-lts.1",
+  "dotenv": "^16.3.1",
+  "cors": "^2.8.5",
+  "helmet": "^7.0.0"
+}
+```
+
+### Database Schema (MySQL):
+Create these tables with proper relationships and indexes:
+
+1. **users** - id, username, email, password_hash, role (admin/canvasser/cleaner), first_name, last_name, phone, is_active, timestamps
+2. **customers** - id, personal info, address, property_type, windows_count, special_instructions, canvasser_id, assigned_cleaner_id, status (prospect/active/paused/cancelled), timestamps
+3. **jobs** - id, customer_id, cleaner_id, canvasser_id, job_type (initial/regular/one_off), status, scheduled_date, scheduled_time, completed_at, price, payment_method, payment_status, before_photo_url, after_photo_url, notes, skip_reason, is_recurring, next_scheduled_date, timestamps
+4. **schedule_pauses** - id, customer_id, pause_start_date, pause_end_date, reason, created_by_user_id, is_active, timestamps
+5. **pricing_tiers** - id, name, property_type, window_count_min, window_count_max, base_price, per_window_price, is_active
+6. **invoices** - id, customer_id, job_id, invoice_number, dates, amounts, status, payment_date, notes, timestamps
+7. **system_settings** - id, setting_key, setting_value, description, timestamps
+8. **audit_log** - id, user_id, action, table_name, record_id, old_values (JSON), new_values (JSON), ip_address, timestamps
+
+### API Endpoints Required:
+
+**Authentication:**
+- POST /api/auth/login - JWT login with role-based response
+
+**Customers:**
+- GET /api/customers - List with filters (status, postcode, cleaner_id)
+- POST /api/customers - Create customer + auto-schedule first job
+- POST /api/customers/:id/pause - Pause schedule with reason
+- POST /api/customers/:id/resume - Resume to original 42-day cycle
+
+**Jobs:**
+- GET /api/jobs - List with filters (date, cleaner_id, status)
+- PUT /api/jobs/:id/complete - Complete job with photo upload (multipart/form-data)
+- PUT /api/jobs/:id/skip - Skip job with reason
+
+**Admin:**
+- GET /api/admin/users - List all users
+- POST /api/admin/users - Create new users
+- GET /api/pricing - Get pricing tiers
+
+### Frontend Requirements:
+Create a single-page application (HTML/CSS/JS) with:
+
+1. **Login System**: JWT authentication with role detection
+2. **Tabbed Interface**: Canvassing, Jobs Today, Customers, Admin (admin only)
+3. **Canvassing Tab**: 
+   - Price calculator (updates in real-time)
+   - Customer registration form
+   - Cleaner assignment dropdown
+4. **Jobs Tab**:
+   - Daily job list for cleaners
+   - Job completion modal with photo upload
+   - Payment method selection
+   - Skip job functionality
+5. **Customers Tab**:
+   - Customer list with status filters
+   - Pause/resume buttons
+6. **Admin Tab**:
+   - User creation form
+   - System management
+
+### Key Business Logic:
+
+1. **Auto-Scheduling Algorithm**:
+   ```javascript
+   // When job is completed:
+   // 1. Mark job as completed with payment details
+   // 2. If customer is active and job is recurring:
+   //    - Create new job with scheduled_date = completed_date + 42 days
+   //    - Set next_scheduled_date = scheduled_date + 42 days
+   ```
+
+2. **Customer Pause Logic**:
+   ```javascript
+   // When pausing customer:
+   // 1. Create schedule_pauses record
+   // 2. Update customer status to 'paused'
+   // 3. Cancel all future scheduled jobs
+   // When resuming:
+   // 1. Deactivate pause record
+   // 2. Update customer status to 'active'  
+   // 3. Calculate next appointment based on last completed job + 42 days
+   // 4. Create new scheduled job
+   ```
+
+3. **Pricing Calculator**:
+   ```javascript
+   // House: ≤10 windows = £15, 11-20 = £25, 21+ = £35 + £1.50/extra window
+   // Flat: ≤6 windows = £12, 7+ = £18 + £1.00/extra window  
+   // Commercial: ≤20 windows = £50, 21+ = £80 + £2.00/extra window
+   ```
+
+### File Structure:
+```
+window-cleaning-management/
+├── server.js (main Express app)
+├── package.json
+├── .env (DB credentials, JWT secret)
+├── scripts/
+│   ├── setup-database.js (create tables, indexes, default data)
+│   ├── seed-data.js (sample customers, jobs, users)
+│   └── auto-schedule.js (background service for recurring jobs)
+├── public/
+│   └── index.html (complete SPA dashboard)
+└── uploads/jobs/ (photo storage)
+```
+
+### Security & Features:
+- **JWT Authentication** with role-based middleware
+- **bcrypt** password hashing
+- **SQL injection protection** with parameterized queries
+- **File upload security** with Multer (image files only)
+- **Photo management** for before/after job documentation
+- **Audit trail** for all important actions
+- **Connection pooling** for MySQL performance
+- **Error handling** and validation throughout
+
+### Startup Process:
+1. npm install dependencies
+2. Create .env with DB credentials and JWT secret
+3. Run `node scripts/setup-database.js` to create schema
+4. Run `node scripts/seed-data.js` for test data
+5. Start with `npm start`
+6. Login with default admin (admin/admin123)
+
+### Auto-Scheduler Service:
+Create a background service that runs every hour to:
+- Check completed jobs and create next 42-day appointments
+- Resume customers whose pause period has ended
+- Generate daily reports for cleaners
+
+This is a production-ready business management system for window cleaning operations with complete door canvassing workflow, automated scheduling, customer management, and photo documentation capabilities.
+
+## Implementation Priority:
+1. Database schema and setup scripts
+2. Authentication system and user management
+3. Customer creation and job scheduling logic
+4. Job completion workflow with photo upload
+5. Customer pause/resume functionality  
+6. Frontend dashboard with all tabs
+7. Auto-scheduler background service
+8. Admin functions and reporting
+
+Create this as a complete, functional business management system with all the features working together seamlessly.

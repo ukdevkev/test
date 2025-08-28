@@ -10,7 +10,7 @@ import { Job, User as UserType } from "@/types";
 import { format } from "date-fns";
 
 export default function JobsTab() {
-  const [selectedCleanerId, setSelectedCleanerId] = useState<string>("");
+  const [selectedCleanerId, setSelectedCleanerId] = useState<string>("all");
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
 
@@ -19,7 +19,7 @@ export default function JobsTab() {
     queryKey: ["/api/jobs/today", ...(selectedCleanerId ? [selectedCleanerId] : [])],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (selectedCleanerId) {
+      if (selectedCleanerId && selectedCleanerId !== "all") {
         params.append("cleanerId", selectedCleanerId);
       }
       
@@ -85,7 +85,7 @@ export default function JobsTab() {
               <SelectValue placeholder="All Cleaners" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Cleaners</SelectItem>
+              <SelectItem value="all">All Cleaners</SelectItem>
               {cleaners.map((cleaner) => (
                 <SelectItem key={cleaner.id} value={cleaner.id}>
                   {cleaner.firstName} {cleaner.lastName}

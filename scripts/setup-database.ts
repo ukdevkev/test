@@ -6,7 +6,7 @@ import {
   schedulePauses, 
   pricingTiers, 
   auditLog 
-} from "@shared/schema";
+} from "../shared/schema";
 import { sql } from "drizzle-orm";
 
 async function setupDatabase() {

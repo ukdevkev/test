@@ -21,7 +21,7 @@ import { getAuthToken } from "@/lib/auth";
 export default function CustomersTab() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   // Fetch customers with filters
@@ -29,7 +29,7 @@ export default function CustomersTab() {
     queryKey: ["/api/customers", statusFilter, searchQuery],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (statusFilter) params.append("status", statusFilter);
+      if (statusFilter && statusFilter !== "all") params.append("status", statusFilter);
       if (searchQuery) params.append("search", searchQuery);
       
       const response = await fetch(`/api/customers?${params}`);
@@ -159,7 +159,7 @@ export default function CustomersTab() {
               <SelectValue placeholder="All Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Status</SelectItem>
+              <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="active">Active</SelectItem>
               <SelectItem value="paused">Paused</SelectItem>
               <SelectItem value="cancelled">Cancelled</SelectItem>

@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { db } from "../server/db";
-import { users, customers, jobs } from "@shared/schema";
+import { users, customers, jobs } from "../shared/schema";
 import { eq } from "drizzle-orm";
 
 async function seedData() {

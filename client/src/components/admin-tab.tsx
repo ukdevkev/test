@@ -54,7 +54,7 @@ export default function AdminTab() {
   });
 
   // Fetch stats
-  const { data: stats, isLoading: statsLoading } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery<{activeCustomers: number; completedJobs: number}>({
     queryKey: ["/api/admin/stats"],
   });
 

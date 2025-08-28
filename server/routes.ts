@@ -300,7 +300,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         passwordHash,
       };
 
-      const user = await storage.createUser(userToCreate);
+      const user = await storage.createUser(userToCreate as any);
       res.status(201).json(user);
     } catch (error) {
       console.error("Error creating user:", error);

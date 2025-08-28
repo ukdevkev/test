@@ -162,7 +162,7 @@ export class DatabaseStorage implements IStorage {
     }
     
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      return await query.where(and(...conditions)).orderBy(asc(customers.firstName));
     }
 
     return await query.orderBy(asc(customers.firstName));
@@ -248,7 +248,7 @@ export class DatabaseStorage implements IStorage {
     }
     
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      return await query.where(and(...conditions)).orderBy(asc(jobs.scheduledDate));
     }
 
     return await query.orderBy(asc(jobs.scheduledDate));
@@ -285,9 +285,7 @@ export class DatabaseStorage implements IStorage {
       conditions.push(eq(jobs.cleanerId, cleanerId));
     }
     
-    query = query.where(and(...conditions));
-
-    return await query.orderBy(asc(jobs.scheduledTime));
+    return await query.where(and(...conditions)).orderBy(asc(jobs.scheduledTime));
   }
 
   async createJob(jobData: InsertJob): Promise<Job> {
